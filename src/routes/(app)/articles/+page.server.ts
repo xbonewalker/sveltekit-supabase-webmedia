@@ -5,7 +5,7 @@ import type { PageServerLoad } from './$types';
 export const load = (async ({ locals: { supabase } }) => {
   const { data: articles, error } = await supabase
     .from('articles')
-    .select('title,slug');
+    .select('id,title,slug,user_id,created_at,updated_at');
 
   if (error) {
     console.log(error);
