@@ -12,10 +12,14 @@
   };
 </script>
 
+<a href="/articles">All</a>
 <ul>
   {#each data.articles as article}
     <li>
       <a href={`/articles/${article.slug}`} on:click={() => setToStore(article)}>{article.title}</a>
+      {#each article.tags as tag}
+        <a href={`/articles?tag=${tag.name}`}>{tag.name}</a>
+      {/each}
     </li>
   {/each}
 </ul>

@@ -12,6 +12,9 @@
 </script>
 
 <h1>{data.article.title}</h1>
+{#each data.article.tags as tag}
+  {tag.name}
+{/each}
 <div>{@html data.article.content1}</div>
 <div>{@html data.article.content2}</div>
 <div>{data.article.created_at}</div>

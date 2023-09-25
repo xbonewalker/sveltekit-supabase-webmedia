@@ -2,15 +2,32 @@ import { error as svelteKitError } from '@sveltejs/kit';
 
 import type { PageServerLoad } from './$types';
 
-export const load = (async ({ locals: { supabase } }) => {
-  const { data: articles, error } = await supabase
-    .from('articles')
-    .select('id,title,slug,user_id,created_at,updated_at');
+export const load = (async ({ locals: { supabase }, url }) => {
+  const tagName = url.searchParams.get('tag');
 
-  if (error) {
-    console.log(error);
-    throw svelteKitError(500, 'Internal Error!');
-  }
+  const articles = tagName === null
+    ? await supabase
+      .from('articles')
+      .select('id,title,slug,user_id,created_at,updated_at,tags(name)')
+      .then(({ data, error }) => {
+        if (error) {
+          console.log(error);
+          throw svelteKitError(500, 'Internal Error!');
+        }
+        return data;
+      })
+    : await supabase
+      .from('tags')
+      .select('articles!inner(id,title,slug,user_id,created_at,updated_at,tags(name))')
+      .eq('name', tagName)
+      .single()
+      .then(({ data, error }) => {
+        if (error) {
+          console.log(error);
+          throw svelteKitError(500, 'Internal Error!');
+        }
+        return data.articles;
+      });
 
   return {
     articles

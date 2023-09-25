@@ -7,6 +7,9 @@ export interface Article {
   user_id: string;
   created_at: string;
   updated_at: string;
+  tags: {
+    name: string;
+  }[];
 }
 
 export const article = writable<Article | undefined>(undefined);
