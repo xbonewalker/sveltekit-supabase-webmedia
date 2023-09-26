@@ -17,18 +17,21 @@ export const load = (async ({ locals: { getSession, supabase }, params, request 
     fields += ',content2';
   }
 
-  const { data: article, error } = await supabase
+  const { data: articles, error } = await supabase
     .from('articles')
     .select(fields as '*,tags(name)')
-    .eq('slug', params.slug)
-    .single();
+    .eq('slug', params.slug);
 
   if (error) {
     console.log(error);
     throw svelteKitError(500, 'Internal Error!');
   }
 
+  if (!articles.length) {
+    throw svelteKitError(404, 'Not found');
+  }
+
   return {
-    article
+    article: articles[0]
   };
 }) satisfies PageServerLoad;

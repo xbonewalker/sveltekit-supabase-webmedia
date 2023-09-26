@@ -20,13 +20,15 @@ export const load = (async ({ locals: { supabase }, url }) => {
       .from('tags')
       .select('articles!inner(id,title,slug,user_id,created_at,updated_at,tags(name))')
       .eq('name', tagName)
-      .single()
       .then(({ data, error }) => {
         if (error) {
           console.log(error);
           throw svelteKitError(500, 'Internal Error!');
         }
-        return data.articles;
+        if (!data.length) {
+          throw svelteKitError(404, 'Not found');
+        }
+        return data[0].articles;
       });
 
   return {
