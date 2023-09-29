@@ -19,6 +19,7 @@ export interface Database {
           title: string
           updated_at: string
           user_id: string
+          username: string
         }
         Insert: {
           content1: string
@@ -29,6 +30,7 @@ export interface Database {
           title: string
           updated_at?: string
           user_id: string
+          username: string
         }
         Update: {
           content1?: string
@@ -39,6 +41,7 @@ export interface Database {
           title?: string
           updated_at?: string
           user_id?: string
+          username?: string
         }
         Relationships: [
           {
@@ -46,6 +49,12 @@ export interface Database {
             columns: ["user_id"]
             referencedRelation: "users"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "articles_username_fkey"
+            columns: ["username"]
+            referencedRelation: "profiles"
+            referencedColumns: ["username"]
           }
         ]
       }
