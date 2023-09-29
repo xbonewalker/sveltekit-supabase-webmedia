@@ -15,6 +15,11 @@
 {#each data.article.tags as tag}
   {tag.name}
 {/each}
+<div>{data.article.username}</div>
+{#if data.article.profiles}
+  <div>{data.article.profiles.first_name}</div>
+  <div>{data.article.profiles.last_name}</div>
+{/if}
 <div>{@html data.article.content1}</div>
 <div>{@html data.article.content2}</div>
 <div>{data.article.created_at}</div>

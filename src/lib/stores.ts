@@ -4,7 +4,11 @@ export interface Article {
   id: number;
   title: string;
   slug: string;
-  user_id: string;
+  username: string;
+  profiles: {
+    first_name: string | null;
+    last_name: string | null;
+  } | null;
   created_at: string;
   updated_at: string;
   tags: {

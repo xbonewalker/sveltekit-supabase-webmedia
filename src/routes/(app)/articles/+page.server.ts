@@ -8,7 +8,7 @@ export const load = (async ({ locals: { supabase }, url }) => {
   const articles = tagName === null
     ? await supabase
       .from('articles')
-      .select('id,title,slug,user_id,created_at,updated_at,tags(name)')
+      .select('id,title,slug,username,profiles(first_name,last_name),created_at,updated_at,tags(name)')
       .then(({ data, error }) => {
         if (error) {
           console.log(error);
@@ -18,7 +18,7 @@ export const load = (async ({ locals: { supabase }, url }) => {
       })
     : await supabase
       .from('tags')
-      .select('articles!inner(id,title,slug,user_id,created_at,updated_at,tags(name))')
+      .select('articles(id,title,slug,username,profiles(first_name,last_name),created_at,updated_at,tags(name))')
       .eq('name', tagName)
       .then(({ data, error }) => {
         if (error) {

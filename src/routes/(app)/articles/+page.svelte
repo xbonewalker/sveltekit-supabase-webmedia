@@ -20,6 +20,10 @@
       {#each article.tags as tag}
         <a href={`/articles?tag=${tag.name}`}>{tag.name}</a>
       {/each}
+      {article.username}
+      {#if article.profiles}
+        {article.profiles.first_name}{article.profiles.last_name}
+      {/if}
     </li>
   {/each}
 </ul>
