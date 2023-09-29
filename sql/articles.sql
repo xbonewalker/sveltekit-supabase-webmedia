@@ -4,7 +4,10 @@ create table public.articles (
   slug text not null unique,
   content1 text not null,
   content2 text not null,
-  user_id uuid not null references auth.users,
+  user_id uuid not null,
+  username text not null,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null,
-  updated_at timestamp with time zone default timezone('utc'::text, now()) not null
+  updated_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  constraint articles_user_id_fkey foreign key (user_id) references auth.users (id),
+  constraint articles_username_fkey foreign key (username) references profiles (username)
 );
