@@ -11,3 +11,8 @@ create table public.profiles (
 );
 
 alter table public.profiles enable row level security;
+
+create policy "Enable read access for all users" on "public"."profiles"
+as permissive for select
+to public
+using (true);
