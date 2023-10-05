@@ -2,13 +2,15 @@ import { error as svelteKitError } from '@sveltejs/kit';
 
 import type { PageServerLoad } from './$types';
 
+import type { Article } from '$lib/types';
+
 export const load = (async ({ locals: { getSession, supabase }, params, request }) => {
   let fields = 'content1';
 
   const referer = request.headers.get('referer');
 
   if (referer !== 'http://localhost:5173/articles') {
-    fields += ',id,title,username,profiles(first_name,last_name),created_at,updated_at,tags(name)';
+    fields += ',id,title,slug,username,profile:profiles(first_name,last_name),created_at,updated_at,tags(name)';
   }
 
   const session = await getSession();
@@ -19,7 +21,7 @@ export const load = (async ({ locals: { getSession, supabase }, params, request 
 
   const { data: articles, error } = await supabase
     .from('articles')
-    .select(fields as '*,profiles(first_name,last_name),tags(name)')
+    .select(fields as '*,profile:profiles(first_name,last_name),tags(name)')
     .eq('slug', params.slug);
 
   if (error) {
@@ -32,6 +34,6 @@ export const load = (async ({ locals: { getSession, supabase }, params, request 
   }
 
   return {
-    article: articles[0]
+    article: articles[0] as Article | Pick<Article, 'content1' | 'content2'> | Omit<Article, 'content2'> | Pick<Article, 'content1'>
   };
 }) satisfies PageServerLoad;

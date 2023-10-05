@@ -2,13 +2,15 @@ import { error as svelteKitError } from '@sveltejs/kit';
 
 import type { PageServerLoad } from './$types';
 
+import type { Article } from '$lib/types';
+
 export const load = (async ({ locals: { supabase }, url }) => {
   const tagName = url.searchParams.get('tag');
 
   const articles = tagName === null
     ? await supabase
       .from('articles')
-      .select('id,title,slug,username,profiles(first_name,last_name),created_at,updated_at,tags(name)')
+      .select('id,title,slug,username,profile:profiles(first_name,last_name),created_at,updated_at,tags(name)')
       .then(({ data, error }) => {
         if (error) {
           console.log(error);
@@ -18,7 +20,7 @@ export const load = (async ({ locals: { supabase }, url }) => {
       })
     : await supabase
       .from('tags')
-      .select('articles(id,title,slug,username,profiles(first_name,last_name),created_at,updated_at,tags(name))')
+      .select('articles(id,title,slug,username,profile:profiles(first_name,last_name),created_at,updated_at,tags(name))')
       .eq('name', tagName)
       .then(({ data, error }) => {
         if (error) {
@@ -32,6 +34,6 @@ export const load = (async ({ locals: { supabase }, url }) => {
       });
 
   return {
-    articles
+    articles: articles as Omit<Article, 'content1' | 'content2'>[]
   };
 }) satisfies PageServerLoad;

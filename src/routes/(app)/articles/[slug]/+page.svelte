@@ -1,26 +1,33 @@
 <script lang="ts">
-  import { article } from '$lib/stores';
+  import { storedArticleWithoutContent } from '$lib/stores';
+  import { isArticle } from '$lib/types';
 
   import type { PageData } from './$types';
 
+  import type { Article } from '$lib/types';
+
   export let data: PageData;
 
-  if ($article) {
-    Object.assign(data.article, $article);
-    $article = undefined;
+  if ($storedArticleWithoutContent) {
+    Object.assign(data.article, $storedArticleWithoutContent);
+    $storedArticleWithoutContent = undefined;
+  }
+
+  let article: Article;
+
+  if (isArticle(data.article)) {
+    article = data.article;
   }
 </script>
 
-<h1>{data.article.title}</h1>
-{#each data.article.tags as tag}
+<h1>{article.title}</h1>
+{#each article.tags as tag}
   {tag.name}
 {/each}
-<div>{data.article.username}</div>
-{#if data.article.profiles}
-  <div>{data.article.profiles.first_name}</div>
-  <div>{data.article.profiles.last_name}</div>
-{/if}
-<div>{@html data.article.content1}</div>
-<div>{@html data.article.content2}</div>
-<div>{data.article.created_at}</div>
-<div>{data.article.updated_at}</div>
+<div>{article.username}</div>
+<div>{article.profile.first_name}</div>
+<div>{article.profile.last_name}</div>
+<div>{@html article.content1}</div>
+<div>{@html article.content2}</div>
+<div>{article.created_at}</div>
+<div>{article.updated_at}</div>

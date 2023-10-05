@@ -1,19 +1,6 @@
 import { writable } from 'svelte/store';
 
-export interface Article {
-  id: number;
-  title: string;
-  slug: string;
-  username: string;
-  profiles: {
-    first_name: string | null;
-    last_name: string | null;
-  } | null;
-  created_at: string;
-  updated_at: string;
-  tags: {
-    name: string;
-  }[];
-}
+import type { Article, ArticleWithoutContent } from './types';
 
-export const article = writable<Article | undefined>(undefined);
+export const storedArticle = writable<Article | undefined>(undefined);
+export const storedArticleWithoutContent = writable<ArticleWithoutContent | undefined>(undefined);
