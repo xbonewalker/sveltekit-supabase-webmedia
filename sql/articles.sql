@@ -11,3 +11,16 @@ create table public.articles (
   constraint articles_user_id_fkey foreign key (user_id) references auth.users (id),
   constraint articles_username_fkey foreign key (username) references profiles (username)
 );
+
+alter table public.profiles enable row level security;
+
+create policy "Enable all actions for users based on user_id" on "public"."articles"
+as permissive for all
+to public
+using (auth.uid() = user_id)
+with check (auth.uid() = user_id);
+
+create policy "Enable read access for all users" on "public"."articles"
+as permissive for select
+to public
+using (true);
