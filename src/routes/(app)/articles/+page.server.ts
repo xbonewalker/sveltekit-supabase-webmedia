@@ -2,9 +2,9 @@ import { error as svelteKitError } from '@sveltejs/kit';
 
 import type { PageServerLoad } from './$types';
 
-import type { Article } from '$lib/types';
+import type { Article, Tables } from '$lib/types';
 
-export const load = (async ({ locals: { supabase }, url }) => {
+export const load = (async ({ locals: { getSignedInCreator, supabase }, url }) => {
   const tagName = url.searchParams.get('tag');
 
   const articles = tagName === null
@@ -33,7 +33,10 @@ export const load = (async ({ locals: { supabase }, url }) => {
         return data[0].articles;
       });
 
+  const signedInCreator = await getSignedInCreator();
+
   return {
-    articles: articles as Omit<Article, 'content1' | 'content2'>[]
+    articles: articles as Omit<Article, 'content1' | 'content2'>[],
+    signedInCreator: signedInCreator as Pick<Tables<'profiles'>, 'username'>
   };
 }) satisfies PageServerLoad;

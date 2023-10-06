@@ -8,7 +8,10 @@
 
   export let data: PageData;
 
-  if ($storedArticleWithoutContent) {
+  if ($storedArticle) {
+    Object.assign(data.article, $storedArticle);
+    $storedArticle = undefined;
+  } else if ($storedArticleWithoutContent) {
     Object.assign(data.article, $storedArticleWithoutContent);
     $storedArticleWithoutContent = undefined;
   }
@@ -19,10 +22,6 @@
     article = data.article;
   }
 </script>
-
-{#if data.signedInCreator && data.signedInCreator.username === article.username}
-  <a href={`/admin/articles/${article.slug}`} on:click={() => storedArticle.set(article)}>Edit</a>
-{/if}
 
 <h1>{article.title}</h1>
 {#each article.tags as tag}

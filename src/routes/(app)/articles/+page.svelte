@@ -16,6 +16,9 @@
       {/each}
       {article.username}
       {article.profile.first_name}{article.profile.last_name}
+      {#if data.signedInCreator && data.signedInCreator.username === article.username}
+        <a href={`/admin/articles/${article.slug}`} on:click={() => storedArticleWithoutContent.set(article)}>Edit</a>
+      {/if}
     </li>
   {/each}
 </ul>
