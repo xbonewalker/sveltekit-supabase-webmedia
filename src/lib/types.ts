@@ -1,10 +1,12 @@
 import type { Database } from '../DatabaseDefinitions';
 
-export type Tables<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Row'];
+type Tables = Database['public']['Tables'];
+export type TablesRow<T extends keyof Tables> = Tables[T]['Row'];
+export type TablesInsert<T extends keyof Tables> = Tables[T]['Insert'];
 
 // Profile
 
-type Profile = Pick<Tables<'profiles'>, 'first_name' | 'last_name'>
+type Profile = Pick<TablesRow<'profiles'>, 'first_name' | 'last_name'>
 
 const isProfile = (arg: any): arg is Profile => {
   return typeof arg.first_name === 'string'
@@ -13,7 +15,7 @@ const isProfile = (arg: any): arg is Profile => {
 
 // Tag
 
-type Tag = Pick<Tables<'tags'>, 'name'>;
+type Tag = Pick<TablesRow<'tags'>, 'name'>;
 
 const isTag = (arg: any): arg is Tag => {
   return typeof arg.name === 'string';
@@ -21,7 +23,7 @@ const isTag = (arg: any): arg is Tag => {
 
 // Article
 
-export type Article = Omit<Tables<'articles'>, 'user_id'> & {
+export type Article = Omit<TablesRow<'articles'>, 'user_id'> & {
   profile: Profile;
 } & {
   tags: Tag[];

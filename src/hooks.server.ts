@@ -23,21 +23,21 @@ export const handle: Handle = async ({ event, resolve }) => {
   event.locals.getSignedInCreator = async () => {
     const session = await event.locals.getSession();
     return session
-    ? await event.locals.supabase
-      .from('profiles')
-      .select('username,role:roles!inner(name)')
-      .match({ id: session.user.id, 'roles.name': 'creator' })
-      .then(({ data, error }) => {
-        if (error) {
-          console.log(error);
-          throw svelteKitError(500, 'Internal Error!');
-        }
-        if (!data.length) {
-          return undefined;
-        }
-        return data[0];
-      })
-    : undefined;
+      ? await event.locals.supabase
+        .from('profiles')
+        .select('id,username,role:roles!inner(name)')
+        .match({ id: session.user.id, 'roles.name': 'creator' })
+        .then(({ data, error }) => {
+          if (error) {
+            console.log(error);
+            throw svelteKitError(500, 'Internal Error!');
+          }
+          if (!data.length) {
+            return undefined;
+          }
+          return data[0];
+        })
+      : undefined;
   };
 
   if (event.url.pathname.startsWith('/admin')) {

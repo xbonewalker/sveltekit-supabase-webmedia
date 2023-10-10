@@ -2,7 +2,7 @@ import { error as svelteKitError } from '@sveltejs/kit';
 
 import type { PageServerLoad } from './$types';
 
-import type { Article, Tables } from '$lib/types';
+import type { Article, TablesRow } from '$lib/types';
 
 export const load = (async ({ locals: { getSession, getSignedInCreator, supabase }, params, request }) => {
   let fields = 'content1';
@@ -37,6 +37,6 @@ export const load = (async ({ locals: { getSession, getSignedInCreator, supabase
 
   return {
     article: articles[0] as Article | Pick<Article, 'content1' | 'content2'> | Omit<Article, 'content2'> | Pick<Article, 'content1'>,
-    signedInCreator: signedInCreator as Pick<Tables<'profiles'>, 'username'>
+    signedInCreator: signedInCreator as Pick<TablesRow<'profiles'>, 'username'>
   };
 }) satisfies PageServerLoad;
