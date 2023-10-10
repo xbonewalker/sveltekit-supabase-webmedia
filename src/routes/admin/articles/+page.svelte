@@ -1,10 +1,12 @@
 <script lang="ts">
+  import { enhance } from '$app/forms';
+
   import type { ActionData } from './$types';
 
   export let form: ActionData;
 </script>
 
-<form method="POST">
+<form method="POST" use:enhance>
   {#if form?.errors.title}
     {#each form.errors.title as message}
       <div>{message}</div>

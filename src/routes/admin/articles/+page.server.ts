@@ -46,7 +46,7 @@ export const actions = {
     };
 
     Object.entries(requestData).forEach(([fieldName, value]) => {
-      const capitalizedFieldName =  fieldName.charAt(0).toUpperCase() + fieldName.slice(1);
+      const capitalizedFieldName = fieldName.charAt(0).toUpperCase() + fieldName.slice(1);
 
       if (!value) {
         initializeErrorsByField(fieldName);
