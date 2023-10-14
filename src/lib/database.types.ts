@@ -3,6 +3,7 @@ import type { Database } from '../DatabaseDefinitions';
 type Tables = Database['public']['Tables'];
 export type TablesRow<T extends keyof Tables> = Tables[T]['Row'];
 export type TablesInsert<T extends keyof Tables> = Tables[T]['Insert'];
+export type TablesUpdate<T extends keyof Tables> = Tables[T]['Update'];
 
 // Profile
 

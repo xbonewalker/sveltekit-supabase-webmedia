@@ -1,18 +1,11 @@
 import { error as svelteKitError, fail, redirect } from '@sveltejs/kit';
 
+import { initializeErrorsByField } from '$lib/server/validation';
+
 import type { Actions } from './$types';
 
-import type { TablesInsert } from '$lib/types';
-
-interface Errors {
-  [fieldName: string]: string[];
-}
-
-const initializeErrorsByField = (errors: Errors, fieldName: string) => {
-  if (!(fieldName in errors)) {
-    errors[fieldName] = [];
-  }
-};
+import type { Errors } from '$lib/server/validation';
+import type { TablesInsert } from '$lib/database.types';
 
 export const actions = {
   createArticle: async ({ locals: { getSignedInCreator, supabase }, request }) => {
@@ -61,20 +54,22 @@ export const actions = {
       }
     });
 
-    const count = await supabase
-      .from('articles')
-      .select('*', { count: 'exact', head: true })
-      .eq('slug', requestData.slug)
-      .then(({ count, error }) => {
-        if (error) {
-          console.log(error);
-          throw svelteKitError(500, 'Internal Error!');
-        }
-        return count;
-      });
+    if (requestData.slug && !('slug' in errors)) {
+      const count = await supabase
+        .from('articles')
+        .select('*', { count: 'exact', head: true })
+        .eq('slug', requestData.slug)
+        .then(({ count, error }) => {
+          if (error) {
+            console.log(error);
+            throw svelteKitError(500, 'Internal Error!');
+          }
+          return count;
+        });
 
-    if (count) {
-      errors.slug = ['This slug already exists'];
+      if (count) {
+        errors.slug = ['This slug already exists'];
+      }
     }
 
     if (Object.keys(errors).length !== 0) {
@@ -90,12 +85,13 @@ export const actions = {
       .from('articles')
       .insert(Object.assign(requestData, user))
       .select('id')
+      .single()
       .then(({ data, error }) => {
         if (error) {
           console.log(error);
           throw svelteKitError(500, 'Internal Error!');
         }
-        return data[0];
+        return data;
       });
 
     return { id: newArticle.id };
@@ -117,11 +113,11 @@ export const actions = {
 
     type RequestData = {
       [K in keyof TablesInsert<'tags'>]: any
-    };
+    }[];
 
-    let requestDataArray: RequestData[] = JSON.parse(tags.toString());
+    let requestData: RequestData = JSON.parse(tags.toString());
 
-    // let requestDataArray: RequestData[] = [
+    // let requestData: RequestData = [
     //   { name: 2 },
     //   { name: undefined },
     //   { name: 'tag3' },
@@ -130,14 +126,14 @@ export const actions = {
     //   { name: 'tag6' }
     // ];
 
-    if (!Array.isArray(requestDataArray)) {
+    if (!Array.isArray(requestData)) {
       console.log('Tag data are missing');
       throw svelteKitError(400, 'Bad Request!');
     }
 
     let errors: Errors = {};
 
-    requestDataArray.forEach((tag, index) => {
+    requestData.forEach((tag, index) => {
       if (!tag.name) return;
       if (typeof tag.name !== 'string') {
         initializeErrorsByField(errors, `tag${++index}`);
@@ -147,17 +143,17 @@ export const actions = {
 
     if (Object.keys(errors).length !== 0) {
       let inputValues: { [fieldName: string]: any } = {};
-      requestDataArray.forEach((tag, index) => {
+      requestData.forEach((tag, index) => {
         inputValues[`tag${++index}`] = tag.name;
       });
       return fail(400, Object.assign(inputValues, { errors }));
     }
 
-    requestDataArray = requestDataArray.filter(tag => tag.name);
+    requestData = requestData.filter(tag => tag.name);
 
-    const newTagArray = await supabase
+    const newTags = await supabase
       .from('tags')
-      .upsert(requestDataArray, { onConflict: 'name', ignoreDuplicates: false })
+      .upsert(requestData, { onConflict: 'name', ignoreDuplicates: false })
       .select('id')
       .then(({ data, error }) => {
         if (error) {
@@ -167,13 +163,13 @@ export const actions = {
         return data;
       });
 
-    const compositePrimaryKeyArray = newTagArray.map((tag) => {
+    const compositePrimaryKeys = newTags.map((tag) => {
       return { article_id: Number(articleId), tag_id: tag.id };
     });
 
     await supabase
       .from('articles_tags')
-      .insert(compositePrimaryKeyArray)
+      .insert(compositePrimaryKeys)
       .then(({ error }) => {
         if (error) {
           console.log(error);

@@ -1,10 +1,9 @@
 <script lang="ts">
   import { storedArticle, storedArticleWithoutContent } from '$lib/stores';
-  import { isArticle } from '$lib/types';
 
   import type { PageData } from './$types';
 
-  import type { Article } from '$lib/types';
+  import type { Article } from '$lib/database.types';
 
   export let data: PageData;
 
@@ -13,11 +12,7 @@
     $storedArticleWithoutContent = undefined;
   }
 
-  let article: Article;
-
-  if (isArticle(data.article)) {
-    article = data.article;
-  }
+  let article = data.article as Article;
 </script>
 
 {#if data.signedInCreator && data.signedInCreator.username === article.username}

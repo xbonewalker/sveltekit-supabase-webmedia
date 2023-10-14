@@ -2,7 +2,7 @@ import { SupabaseClient, Session } from '@supabase/supabase-js';
 
 import { Database } from './DatabaseDefinitions';
 
-import type { TablesRow } from '$lib/types';
+import type { TablesRow } from '$lib/database.types';
 
 declare global {
   namespace App {
