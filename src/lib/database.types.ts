@@ -16,7 +16,7 @@ const isProfile = (arg: any): arg is Profile => {
 
 // Tag
 
-type Tag = Pick<TablesRow<'tags'>, 'name'>;
+type Tag = Pick<TablesRow<'tags'>, 'id' | 'name'>;
 
 const isTag = (arg: any): arg is Tag => {
   return typeof arg.name === 'string';

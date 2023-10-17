@@ -10,7 +10,7 @@ export const load = (async ({ locals: { getSession, getSignedInCreator, supabase
   const referer = request.headers.get('referer');
 
   if (referer !== 'http://localhost:5173/articles') {
-    fields += ',id,title,slug,username,profile:profiles(first_name,last_name),created_at,updated_at,tags(name)';
+    fields += ',id,title,slug,username,profile:profiles(first_name,last_name),created_at,updated_at,tags(id,name)';
   }
 
   const session = await getSession();
@@ -21,7 +21,7 @@ export const load = (async ({ locals: { getSession, getSignedInCreator, supabase
 
   const { data: articles, error } = await supabase
     .from('articles')
-    .select(fields as '*,profile:profiles(first_name,last_name),tags(name)')
+    .select(fields as '*,profile:profiles(first_name,last_name),tags(id,name)')
     .eq('slug', params.slug);
 
   if (error) {

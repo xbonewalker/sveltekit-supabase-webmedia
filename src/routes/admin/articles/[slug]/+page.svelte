@@ -1,7 +1,6 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
-
   import { applyAction, enhance } from '$app/forms';
+  import { invalidateAll } from '$app/navigation';
 
   import { storedArticle, storedArticleWithoutContent } from '$lib/stores';
 
@@ -31,42 +30,11 @@
       }
     });
   };
-
-  let saveButton: HTMLButtonElement;
-
-  onMount(() => {
-    saveButton = document.querySelector('#saveButton') as HTMLButtonElement;
-    saveButton.disabled = true;
-  });
-
-  const changeSaveButtonState = (e: Event) => {
-    if (!e.currentTarget) return;
-    const target = e.currentTarget;
-    if (!('name' in target && 'value' in target)) return;
-
-    const fieldName = target.name;
-    const targetValue = target.value;
-
-    if (targetValue === article[fieldName as keyof Article]) {
-      const formData = new FormData(document.forms[0]);
-      for (const [key, value] of Array.from(formData)) {
-        if (key === fieldName || key === 'id') {
-          continue;
-        }
-        if (value !== article[key as keyof Article]) {
-          saveButton.disabled = false;
-          return;
-        }
-      }
-      saveButton.disabled = true;
-    } else {
-      saveButton.disabled = false;
-    }
-  };
 </script>
 
 <form
   method="POST"
+  action="?/updateArticle"
   use:enhance={({ cancel, formData }) => {
     deleteUnchangedFormData(formData);
     if (Array.from(formData.keys()).length === 1) {
@@ -75,12 +43,7 @@
 
     return async ({ result }) => {
       if (result.type === 'success') {
-        if (result.data?.article) {
-          data.article = result.data.article;
-        }
-      }
-      if (result.type === 'success' || result.type === 'redirect') {
-        saveButton.disabled = true;
+        invalidateAll();
       }
       await applyAction(result);
     };
@@ -91,32 +54,76 @@
       <div>{message}</div>
     {/each}
   {/if}
-  <input type="text" name="title" value={form?.title ?? article.title} on:change={(e) => changeSaveButtonState(e)}>
+  <input type="text" name="title" value={form?.title ?? article.title}>
 
   {#if form?.errors?.slug}
     {#each form.errors.slug as message}
       <div>{message}</div>
     {/each}
   {/if}
-  <input type="text" name="slug" value={form?.slug ?? article.slug} on:change={(e) => changeSaveButtonState(e)}>
+  <input type="text" name="slug" value={form?.slug ?? article.slug}>
 
   {#if form?.errors?.content1}
     {#each form.errors.content1 as message}
       <div>{message}</div>
     {/each}
   {/if}
-  <input type="text" name="content1" value={form?.content1 ?? article.content1} on:change={(e) => changeSaveButtonState(e)}>
+  <input type="text" name="content1" value={form?.content1 ?? article.content1}>
 
   {#if form?.errors?.content2}
     {#each form.errors.content2 as message}
       <div>{message}</div>
     {/each}
   {/if}
-  <input type="text" name="content2" value={form?.content2 ?? article.content2} on:change={(e) => changeSaveButtonState(e)}>
+  <input type="text" name="content2" value={form?.content2 ?? article.content2}>
 
   <input type="hidden" name="id" value={article.id}>
 
-  <button id="saveButton">Save</button>
+  <button>Save</button>
+</form>
+
+<form
+  method="POST"
+  action="?/updateTags"
+  use:enhance={({ formData, formElement }) => {
+    let tags = [];
+    for (let i = 0; i < 3; i++) {
+      tags[i] = { id: article.tags[i]?.id, name: formElement[`tag${i + 1}`].value };
+      formData.delete(`tag${i + 1}`);
+    }
+    formData.set('tags', JSON.stringify(tags));
+    formData.set('articleId', article.id.toString());
+
+    return async ({ result }) => {
+      if (result.type === 'success') {
+        invalidateAll();
+      }
+      await applyAction(result);
+    };
+  }}
+>
+  {#if form?.errors?.tag1}
+    {#each form.errors.tag1 as message}
+      <div>{message}</div>
+    {/each}
+  {/if}
+  <input type="text" name="tag1" value={form?.tag1 ?? article.tags[0]?.name ?? ''}>
+
+  {#if form?.errors?.tag2}
+    {#each form.errors.tag2 as message}
+      <div>{message}</div>
+    {/each}
+  {/if}
+  <input type="text" name="tag2" value={form?.tag2 ?? article.tags[1]?.name ?? ''}>
+
+  {#if form?.errors?.tag3}
+    {#each form.errors.tag3 as message}
+      <div>{message}</div>
+    {/each}
+  {/if}
+  <input type="text" name="tag3" value={form?.tag3 ?? article.tags[2]?.name ?? ''}>
+
+  <button>Save</button>
 </form>
 
 <h1>{article.title}</h1>

@@ -133,11 +133,17 @@ export const actions = {
 
     let errors: Errors = {};
 
-    requestData.forEach((tag, index) => {
+    requestData.forEach((tag, index, array) => {
       if (!tag.name) return;
+
       if (typeof tag.name !== 'string') {
         initializeErrorsByField(errors, `tag${++index}`);
         errors[`tag${index}`].push('Invalid value');
+      }
+
+      if (array.filter((_, i) => i !== index).map(t => t.name).includes(tag.name)) {
+        initializeErrorsByField(errors, `tag${++index}`);
+        errors[`tag${index}`].push('Duplicate values are not allowed');
       }
     });
 
@@ -146,7 +152,7 @@ export const actions = {
       requestData.forEach((tag, index) => {
         inputValues[`tag${++index}`] = tag.name;
       });
-      return fail(400, Object.assign(inputValues, { errors }));
+      return fail(400, Object.assign(inputValues, {id: articleId}, { errors }));
     }
 
     requestData = requestData.filter(tag => tag.name);
