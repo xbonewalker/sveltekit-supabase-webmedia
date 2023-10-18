@@ -84,7 +84,7 @@ export const actions = {
     const newArticle = await supabase
       .from('articles')
       .insert(Object.assign(requestData, user))
-      .select('id')
+      .select('id,title,slug,content1,content2')
       .single()
       .then(({ data, error }) => {
         if (error) {
@@ -94,7 +94,7 @@ export const actions = {
         return data;
       });
 
-    return { id: newArticle.id };
+    return newArticle;
   },
   addTags: async ({ locals: { supabase }, request }) => {
     const formData = await request.formData();
