@@ -3,6 +3,7 @@
   import { invalidateAll } from '$app/navigation';
 
   import { storedArticle, storedArticleWithoutContent } from '$lib/stores';
+  import TextInput from '$lib/TextInput.svelte';
 
   import type { ActionData, PageData } from './$types';
 
@@ -49,33 +50,10 @@
     };
   }}
 >
-  {#if form?.errors?.title}
-    {#each form.errors.title as message}
-      <div>{message}</div>
-    {/each}
-  {/if}
-  <input type="text" name="title" value={form?.title ?? article.title}>
-
-  {#if form?.errors?.slug}
-    {#each form.errors.slug as message}
-      <div>{message}</div>
-    {/each}
-  {/if}
-  <input type="text" name="slug" value={form?.slug ?? article.slug}>
-
-  {#if form?.errors?.content1}
-    {#each form.errors.content1 as message}
-      <div>{message}</div>
-    {/each}
-  {/if}
-  <input type="text" name="content1" value={form?.content1 ?? article.content1}>
-
-  {#if form?.errors?.content2}
-    {#each form.errors.content2 as message}
-      <div>{message}</div>
-    {/each}
-  {/if}
-  <input type="text" name="content2" value={form?.content2 ?? article.content2}>
+  <TextInput name="title" {form} currentValue={article.title} />
+  <TextInput name="slug" {form} currentValue={article.slug} />
+  <TextInput name="content1" {form} currentValue={article.content1} />
+  <TextInput name="content2" {form} currentValue={article.content2} />
 
   <input type="hidden" name="id" value={article.id}>
 
@@ -102,26 +80,9 @@
     };
   }}
 >
-  {#if form?.errors?.tag1}
-    {#each form.errors.tag1 as message}
-      <div>{message}</div>
-    {/each}
-  {/if}
-  <input type="text" name="tag1" value={form?.tag1 ?? article.tags[0]?.name ?? ''}>
-
-  {#if form?.errors?.tag2}
-    {#each form.errors.tag2 as message}
-      <div>{message}</div>
-    {/each}
-  {/if}
-  <input type="text" name="tag2" value={form?.tag2 ?? article.tags[1]?.name ?? ''}>
-
-  {#if form?.errors?.tag3}
-    {#each form.errors.tag3 as message}
-      <div>{message}</div>
-    {/each}
-  {/if}
-  <input type="text" name="tag3" value={form?.tag3 ?? article.tags[2]?.name ?? ''}>
+  {#each Array(3) as _, i}
+    <TextInput name={`tag${i + 1}`} {form} currentValue={article.tags[i]?.name} />
+  {/each}
 
   <button>Save</button>
 </form>

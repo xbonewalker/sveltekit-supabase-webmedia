@@ -112,28 +112,20 @@ export const actions = {
       return fail(400, Object.assign(requestData, { errors }));
     }
 
-    const updatedArticle = await supabase
+    await supabase
       .from('articles')
       .update(requestData)
       .eq('id', id)
-      .select('*,profile:profiles(first_name,last_name),tags(name)')
-      .single()
-      .then(({ data, error }) => {
+      .then(({ error }) => {
         if (error) {
           console.log(error);
           throw svelteKitError(500, 'Internal Error!');
         }
-        return data;
       });
 
     if (slug) {
       throw redirect(303, `/admin/articles/${slug}`);
     }
-
-    const filtered = Object.entries(updatedArticle).filter(([key, _]) => (
-      key !== 'user_id'
-    ));
-    const updatedArticleWithoutUserId = Object.fromEntries(filtered);
   },
   updateTags: async ({ locals: { supabase }, request }) => {
     const formData = await request.formData();

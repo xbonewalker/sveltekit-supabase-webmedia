@@ -1,6 +1,8 @@
 <script lang="ts">
   import { applyAction, enhance } from '$app/forms';
 
+  import TextInput from '$lib/TextInput.svelte';
+
   import type { ActionData } from './$types';
 
   export let form: ActionData;
@@ -24,33 +26,10 @@
   }}
 >
   <fieldset name="articleFields">
-    {#if form?.errors?.title}
-      {#each form.errors.title as message}
-        <div>{message}</div>
-      {/each}
-    {/if}
-    <input type="text" name="title" value={form?.title ?? ''}>
-
-    {#if form?.errors?.slug}
-      {#each form.errors.slug as message}
-        <div>{message}</div>
-      {/each}
-    {/if}
-    <input type="text" name="slug" value={form?.slug ?? ''}>
-
-    {#if form?.errors?.content1}
-      {#each form.errors.content1 as message}
-        <div>{message}</div>
-      {/each}
-    {/if}
-    <input type="text" name="content1" value={form?.content1 ?? ''}>
-
-    {#if form?.errors?.content2}
-      {#each form.errors.content2 as message}
-        <div>{message}</div>
-      {/each}
-    {/if}
-    <input type="text" name="content2" value={form?.content2 ?? ''}>
+    <TextInput name="title" {form} currentValue={undefined} />
+    <TextInput name="slug" {form} currentValue={undefined} />
+    <TextInput name="content1" {form} currentValue={undefined} />
+    <TextInput name="content2" {form} currentValue={undefined} />
 
     <button>Save</button>
   </fieldset>
@@ -78,26 +57,9 @@
   }}
 >
   <fieldset name="tagFields" disabled>
-    {#if form?.errors?.tag1}
-      {#each form.errors.tag1 as message}
-        <div>{message}</div>
-      {/each}
-    {/if}
-    <input type="text" name="tag1" value={form?.tag1 ?? ''}>
-
-    {#if form?.errors?.tag2}
-      {#each form.errors.tag2 as message}
-        <div>{message}</div>
-      {/each}
-    {/if}
-    <input type="text" name="tag2" value={form?.tag2 ?? ''}>
-
-    {#if form?.errors?.tag3}
-      {#each form.errors.tag3 as message}
-        <div>{message}</div>
-      {/each}
-    {/if}
-    <input type="text" name="tag3" value={form?.tag3 ?? ''}>
+    {#each Array(3) as _, i}
+      <TextInput name={`tag${i + 1}`} {form} currentValue={undefined} />
+    {/each}
 
     <button>Save</button>
   </fieldset>
