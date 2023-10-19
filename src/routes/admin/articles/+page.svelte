@@ -26,10 +26,10 @@
   }}
 >
   <fieldset name="articleFields">
-    <TextInput name="title" {form} currentValue={undefined} />
-    <TextInput name="slug" {form} currentValue={undefined} />
-    <TextInput name="content1" {form} currentValue={undefined} />
-    <TextInput name="content2" {form} currentValue={undefined} />
+    <TextInput name="title" {form} currentData={undefined} />
+    <TextInput name="slug" {form} currentData={undefined} />
+    <TextInput name="content1" {form} currentData={undefined} />
+    <TextInput name="content2" {form} currentData={undefined} />
 
     <button>Save</button>
   </fieldset>
@@ -58,7 +58,7 @@
 >
   <fieldset name="tagFields" disabled>
     {#each Array(3) as _, i}
-      <TextInput name={`tag${i + 1}`} {form} currentValue={undefined} />
+      <TextInput name={`tag${i + 1}`} {form} currentData={undefined} />
     {/each}
 
     <button>Save</button>

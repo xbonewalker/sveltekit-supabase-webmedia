@@ -21,6 +21,12 @@
   }
 
   $: article = data.article as Article;
+  $: tagNames = 'tags' in data.article
+    ? data.article.tags.map((tag, index) => {
+        return [`tag${index + 1}`, tag.name];
+      })
+    : [];
+  $: tags = Object.fromEntries(tagNames);
 
   const deleteUnchangedFormData = (formData: FormData) => {
     Array.from(formData).forEach(([key, value]) => {
@@ -50,10 +56,10 @@
     };
   }}
 >
-  <TextInput name="title" {form} currentValue={article.title} />
-  <TextInput name="slug" {form} currentValue={article.slug} />
-  <TextInput name="content1" {form} currentValue={article.content1} />
-  <TextInput name="content2" {form} currentValue={article.content2} />
+  <TextInput name="title" {form} currentData={article} />
+  <TextInput name="slug" {form} currentData={article} />
+  <TextInput name="content1" {form} currentData={article} />
+  <TextInput name="content2" {form} currentData={article} />
 
   <input type="hidden" name="id" value={article.id}>
 
@@ -81,7 +87,7 @@
   }}
 >
   {#each Array(3) as _, i}
-    <TextInput name={`tag${i + 1}`} {form} currentValue={article.tags[i]?.name} />
+    <TextInput name={`tag${i + 1}`} {form} currentData={tags} />
   {/each}
 
   <button>Save</button>
