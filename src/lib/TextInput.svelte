@@ -1,7 +1,10 @@
 <script lang="ts">
+  import { storedForm, storedFormValues } from '$lib/stores';
+
   export let name: string;
-  export let form: { [fieldName: string]: any } & { errors?: { [fieldName: string]: string[] } } | null;
-  export let currentData: { [fieldName: string]: number | string | object } | undefined;
+
+  $: form = $storedForm;
+  $: defaultValues = $storedFormValues;
 </script>
 
 {#if form?.errors?.[name]}
@@ -9,4 +12,4 @@
     <p>{message}</p>
   {/each}
 {/if}
-<input type="text" {name} value={form?.[name] ?? currentData?.[name] ?? ''}>
+<input type="text" {name} value={form?.[name] ?? defaultValues?.[name] ?? ''}>

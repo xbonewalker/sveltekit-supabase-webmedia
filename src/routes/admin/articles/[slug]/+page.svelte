@@ -1,9 +1,18 @@
 <script lang="ts">
+  import { onDestroy, onMount } from 'svelte';
+
   import { applyAction, enhance } from '$app/forms';
   import { invalidateAll } from '$app/navigation';
 
-  import { storedArticle, storedArticleWithoutContent } from '$lib/stores';
-  import TextInput from '$lib/TextInput.svelte';
+  import {
+    storedArticle,
+    storedArticleWithoutContent,
+    storedForm,
+    storedFormValues
+  } from '$lib/stores';
+
+  import ArticleFieldset from '../ArticleFieldset.svelte';
+  import TagsFieldset from '../TagsFieldset.svelte';
 
   import type { ActionData, PageData } from './$types';
 
@@ -11,6 +20,8 @@
 
   export let data: PageData;
   export let form: ActionData;
+
+  $: $storedForm = form;
 
   if ($storedArticle) {
     Object.assign(data.article, $storedArticle);
@@ -21,12 +32,16 @@
   }
 
   $: article = data.article as Article;
-  $: tagNames = 'tags' in data.article
-    ? data.article.tags.map((tag, index) => {
-        return [`tag${index + 1}`, tag.name];
-      })
-    : [];
-  $: tags = Object.fromEntries(tagNames);
+
+  $: articleFormValues = Object.fromEntries(Object.entries(article).filter(([key, _]) => {
+    return ['id', 'title', 'slug', 'content1', 'content2'].includes(key);
+  }));
+
+  $: tagsFormValues = Object.fromEntries(article.tags.map((tag, index) => {
+    return [`tag${index + 1}`, tag.name];
+  }));
+
+  $: $storedFormValues = Object.assign({}, articleFormValues, tagsFormValues);
 
   const deleteUnchangedFormData = (formData: FormData) => {
     Array.from(formData).forEach(([key, value]) => {
@@ -37,6 +52,15 @@
       }
     });
   };
+
+  onMount(() => {
+    console.log($storedFormValues);
+  });
+
+  onDestroy(() => {
+    $storedForm = null;
+    $storedFormValues = undefined;
+  });
 </script>
 
 <form
@@ -56,14 +80,8 @@
     };
   }}
 >
-  <TextInput name="title" {form} currentData={article} />
-  <TextInput name="slug" {form} currentData={article} />
-  <TextInput name="content1" {form} currentData={article} />
-  <TextInput name="content2" {form} currentData={article} />
-
   <input type="hidden" name="id" value={article.id}>
-
-  <button>Save</button>
+  <ArticleFieldset />
 </form>
 
 <form
@@ -86,11 +104,7 @@
     };
   }}
 >
-  {#each Array(3) as _, i}
-    <TextInput name={`tag${i + 1}`} {form} currentData={tags} />
-  {/each}
-
-  <button>Save</button>
+  <TagsFieldset />
 </form>
 
 <h1>{article.title}</h1>

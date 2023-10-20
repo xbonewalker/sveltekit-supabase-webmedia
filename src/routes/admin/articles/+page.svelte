@@ -1,11 +1,33 @@
 <script lang="ts">
+  import { onDestroy, onMount } from 'svelte';
+
   import { applyAction, enhance } from '$app/forms';
 
-  import TextInput from '$lib/TextInput.svelte';
+  import { storedForm, storedFormValues } from '$lib/stores';
+
+  import ArticleFieldset from './ArticleFieldset.svelte';
+  import TagsFieldset from './TagsFieldset.svelte';
 
   import type { ActionData } from './$types';
 
   export let form: ActionData;
+
+  $: $storedForm = form;
+
+  const setNewArticleToStore = (resultData: Record<string, unknown> | undefined) => {
+    if (!resultData) return;
+    $storedFormValues = resultData as Record<string, number | string>;
+  };
+
+  onMount(() => {
+    document.forms[1].tagsFieldset.disabled = true;
+    console.log($storedFormValues);
+  });
+
+  onDestroy(() => {
+    $storedForm = null;
+    $storedFormValues = undefined;
+  });
  </script>
 
 <form
@@ -18,21 +40,17 @@
 
     return async ({ result }) => {
       if (result.type === 'success') {
-        formElement.articleFields.disabled = true;
-        document.forms[1].tagFields.disabled = false;
+        formElement.articleFieldset.disabled = true;
+        document.forms[1].tagsFieldset.disabled = false;
+
+        // $storedFormValues = result.data;
+        setNewArticleToStore(result.data);
       }
       await applyAction(result);
     };
   }}
 >
-  <fieldset name="articleFields">
-    <TextInput name="title" {form} currentData={undefined} />
-    <TextInput name="slug" {form} currentData={undefined} />
-    <TextInput name="content1" {form} currentData={undefined} />
-    <TextInput name="content2" {form} currentData={undefined} />
-
-    <button>Save</button>
-  </fieldset>
+  <ArticleFieldset />
 </form>
 
 <form
@@ -56,11 +74,5 @@
     };
   }}
 >
-  <fieldset name="tagFields" disabled>
-    {#each Array(3) as _, i}
-      <TextInput name={`tag${i + 1}`} {form} currentData={undefined} />
-    {/each}
-
-    <button>Save</button>
-  </fieldset>
+  <TagsFieldset />
 </form>
