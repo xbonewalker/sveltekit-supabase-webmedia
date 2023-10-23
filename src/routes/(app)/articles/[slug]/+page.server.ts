@@ -30,7 +30,11 @@ export const load = (async ({
   const signedInCreator = await getSignedInCreator();
 
   return {
-    article: article as Article | Pick<Article, 'content1' | 'content2'> | Omit<Article, 'content2'> | Pick<Article, 'content1'>,
+    article: article as
+      Article
+      | Pick<Article, 'content1' | 'content2'>
+      | Omit<Article, 'content2'>
+      | Pick<Article, 'content1'>,
     signedInCreator: signedInCreator as Pick<TablesRow<'profiles'>, 'username'>
   };
 }) satisfies PageServerLoad;
