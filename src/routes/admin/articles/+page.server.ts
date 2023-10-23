@@ -1,19 +1,20 @@
 import { error as svelteKitError, fail, redirect } from '@sveltejs/kit';
 
 import { initializeErrorsByField } from '$lib/server/validation';
+import { ArticlesHandler } from '$lib/server/supabase/articlesHandler';
+import { TagsHandler } from '$lib/server/supabase/tagsHandler';
 
 import type { Actions } from './$types';
 
-import type { Errors } from '$lib/server/validation';
 import type { TablesInsert } from '$lib/database.types';
+import type { Errors } from '$lib/server/validation';
 
 export const actions = {
   createArticle: async ({ locals: { getSignedInCreator, supabase }, request }) => {
     const signedInCreator = await getSignedInCreator();
 
     if (!signedInCreator) {
-      console.log('Admin routes are not protected');
-      throw svelteKitError(500, 'Internal Error!');
+      throw new Error('Admin routes are not protected');
     }
 
     const formData = await request.formData();
@@ -54,18 +55,10 @@ export const actions = {
       }
     });
 
+    const articlesHandler = new ArticlesHandler(supabase);
+
     if (requestData.slug && !('slug' in errors)) {
-      const count = await supabase
-        .from('articles')
-        .select('*', { count: 'exact', head: true })
-        .eq('slug', requestData.slug)
-        .then(({ count, error }) => {
-          if (error) {
-            console.log(error);
-            throw svelteKitError(500, 'Internal Error!');
-          }
-          return count;
-        });
+      const count = await articlesHandler.getCount({ slug: requestData.slug });
 
       if (count) {
         errors.slug = ['This slug already exists'];
@@ -81,18 +74,7 @@ export const actions = {
       username: signedInCreator.username
     };
 
-    const newArticle = await supabase
-      .from('articles')
-      .insert(Object.assign(requestData, user))
-      .select('id,title,slug,content1,content2')
-      .single()
-      .then(({ data, error }) => {
-        if (error) {
-          console.log(error);
-          throw svelteKitError(500, 'Internal Error!');
-        }
-        return data;
-      });
+    const newArticle = await articlesHandler.create(Object.assign(requestData, user));
 
     return newArticle;
   },
@@ -157,31 +139,17 @@ export const actions = {
 
     requestData = requestData.filter(tag => tag.name);
 
-    const newTags = await supabase
-      .from('tags')
-      .upsert(requestData, { onConflict: 'name', ignoreDuplicates: false })
-      .select('id')
-      .then(({ data, error }) => {
-        if (error) {
-          console.log(error);
-          throw svelteKitError(500, 'Internal Error!');
-        }
-        return data;
-      });
+    const tagsHandler = new TagsHandler(supabase);
+
+    const newTags = await tagsHandler.create(requestData);
 
     const compositePrimaryKeys = newTags.map((tag) => {
       return { article_id: Number(articleId), tag_id: tag.id };
     });
 
-    await supabase
-      .from('articles_tags')
-      .insert(compositePrimaryKeys)
-      .then(({ error }) => {
-        if (error) {
-          console.log(error);
-          throw svelteKitError(500, 'Internal Error!');
-        }
-      });
+    const articlesHandler = new ArticlesHandler(supabase);
+
+    await articlesHandler.addTags(compositePrimaryKeys);
 
     throw redirect(303, '/articles/');
   }

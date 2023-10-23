@@ -1,4 +1,4 @@
-import { error as svelteKitError, redirect } from '@sveltejs/kit';
+import { redirect } from '@sveltejs/kit';
 
 import { createSupabaseServerClient } from '@supabase/auth-helpers-sveltekit';
 
@@ -29,8 +29,7 @@ export const handle: Handle = async ({ event, resolve }) => {
         .match({ id: session.user.id, 'roles.name': 'creator' })
         .then(({ data, error }) => {
           if (error) {
-            console.log(error);
-            throw svelteKitError(500, 'Internal Error!');
+            throw new Error(error.message);
           }
           if (!data.length) {
             return undefined;

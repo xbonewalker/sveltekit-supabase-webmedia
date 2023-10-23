@@ -1,4 +1,5 @@
-import { error as svelteKitError } from '@sveltejs/kit';
+import { ArticlesHandler } from '$lib/server/supabase/articlesHandler';
+import { TagsHandler } from '$lib/server/supabase/tagsHandler';
 
 import type { Actions, PageServerLoad } from './$types';
 
@@ -7,31 +8,12 @@ import type { Article, TablesRow } from '$lib/database.types';
 export const load = (async ({ locals: { getSignedInCreator, supabase }, url }) => {
   const tagName = url.searchParams.get('tag');
 
+  const articlesHandler = new ArticlesHandler(supabase);
+  const tagsHandler = new TagsHandler(supabase);
+
   const articles = tagName === null
-    ? await supabase
-      .from('articles')
-      .select('id,title,slug,username,profile:profiles(first_name,last_name),created_at,updated_at,tags(id,name)')
-      .then(({ data, error }) => {
-        if (error) {
-          console.log(error);
-          throw svelteKitError(500, 'Internal Error!');
-        }
-        return data;
-      })
-    : await supabase
-      .from('tags')
-      .select('articles(id,title,slug,username,profile:profiles(first_name,last_name),created_at,updated_at,tags(id,name))')
-      .eq('name', tagName)
-      .then(({ data, error }) => {
-        if (error) {
-          console.log(error);
-          throw svelteKitError(500, 'Internal Error!');
-        }
-        if (!data.length) {
-          throw svelteKitError(404, 'Not found');
-        }
-        return data[0].articles;
-      });
+    ? await articlesHandler.getList()
+    : await tagsHandler.getArticleList(tagName);
 
   const signedInCreator = await getSignedInCreator();
 
@@ -48,70 +30,31 @@ export const actions = {
     const { id, ...rest } = Object.fromEntries(formData);
 
     if (!id) {
-      console.log('Article ID is missing');
-      throw svelteKitError(400, 'Bad Request!');
+      throw new Error('Article ID is missing');
     }
 
     if (Object.keys(rest).length !== 0) {
-      console.log('Invalid parameter');
-      throw svelteKitError(400, 'Bad Request!');
+      throw new Error('Invalid parameter');
     }
 
-    const tags = await supabase
-      .from('articles')
-      .select('tags(id)')
-      .eq('id', id)
-      .single()
-      .then(({ data, error }) => {
-        if (error) {
-          console.log(error);
-          throw svelteKitError(500, 'Internal Error!');
-        }
-        return data.tags;
-      });
+    const articlesHandler = new ArticlesHandler(supabase);
 
-    await supabase
-      .from('articles')
-      .delete()
-      .eq('id', id)
-      .then(({ error }) => {
-        if (error) {
-          console.log(error);
-          throw svelteKitError(500, 'Internal Error!');
-        }
-      });
+    const tagIds = await articlesHandler.getTagIds(Number(id));
 
-    const tagIds = tags.map((tag => tag.id));
+    await articlesHandler.delete(Number(id));
 
-    const tagsWithArticles = await supabase
-      .from('tags')
-      .select('id,articles(count)')
-      .in('id', tagIds)
-      .then(({ data, error }) => {
-        if (error) {
-          console.log(error);
-          throw svelteKitError(500, 'Internal Error!');
-        }
-        return data;
-      });
+    const tagsHandler = new TagsHandler(supabase);
 
+    const tagsWithArticlesCount = await tagsHandler.getArticlesCounts(tagIds);
+
+    // forEach cannot be used here.
     await (async () => {
-      for (const tag of tagsWithArticles) {
+      for (const tag of tagsWithArticlesCount) {
         if (!('count' in tag.articles[0])) {
-          console.log('Removed tag information is incorrect');
-          throw svelteKitError(500, 'Internal Error!');
+          throw new Error('The return value of getArticlesCounts() is invalid.');
         }
         if (tag.articles[0].count === 0) {
-          await supabase
-            .from('tags')
-            .delete()
-            .eq('id', tag.id)
-            .then(({ error }) => {
-              if (error) {
-                console.log(error);
-                throw svelteKitError(500, 'Internal Error!');
-              }
-            });
+          await tagsHandler.delete(tag.id);
         }
       }
     })();

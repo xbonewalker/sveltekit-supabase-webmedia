@@ -5,6 +5,14 @@ export type TablesRow<T extends keyof Tables> = Tables[T]['Row'];
 export type TablesInsert<T extends keyof Tables> = Tables[T]['Insert'];
 export type TablesUpdate<T extends keyof Tables> = Tables[T]['Update'];
 
+// Tag
+
+type Tag = Pick<TablesRow<'tags'>, 'id' | 'name'>;
+
+const isTag = (arg: any): arg is Tag => {
+  return typeof arg.name === 'string';
+};
+
 // Profile
 
 type Profile = Pick<TablesRow<'profiles'>, 'first_name' | 'last_name'>
@@ -14,20 +22,12 @@ const isProfile = (arg: any): arg is Profile => {
     && typeof arg.last_name === 'string';
 };
 
-// Tag
-
-type Tag = Pick<TablesRow<'tags'>, 'id' | 'name'>;
-
-const isTag = (arg: any): arg is Tag => {
-  return typeof arg.name === 'string';
-};
-
 // Article
 
 export type Article = Omit<TablesRow<'articles'>, 'user_id'> & {
-  profile: Profile;
-} & {
   tags: Tag[];
+} & {
+  profile: Profile;
 };
 
 export const isArticle = (arg: any): arg is Article => {
@@ -38,9 +38,9 @@ export const isArticle = (arg: any): arg is Article => {
     && typeof arg.username === 'string'
     && typeof arg.created_at === 'string'
     && typeof arg.updated_at === 'string'
-    && isProfile(arg.profile)
     && Array.isArray(arg.tags)
-    && (arg.tags.length === 0 || arg.tags.every((element: any) => isTag(element)));
+    && (arg.tags.length === 0 || arg.tags.every((element: any) => isTag(element)))
+    && isProfile(arg.profile);
 };
 
 export type ArticleWithoutContent = Omit<Article, 'content1' | 'content2'>;

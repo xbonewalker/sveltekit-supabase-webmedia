@@ -1,18 +1,19 @@
 import { error as svelteKitError, fail, redirect } from '@sveltejs/kit';
 
 import { initializeErrorsByField } from '$lib/server/validation';
+import { ArticlesHandler } from '$lib/server/supabase/articlesHandler';
+import { TagsHandler } from '$lib/server/supabase/tagsHandler';
 
 import type { Actions, PageServerLoad } from './$types';
 
-import type { Errors } from '$lib/server/validation';
 import type { Article, TablesUpdate } from '$lib/database.types';
+import type { Errors } from '$lib/server/validation';
 
 export const load = (async ({ locals: { getSession, supabase }, params, request }) => {
   const session = await getSession();
 
   if (!session) {
-    console.log('Admin routes are not protected');
-    throw svelteKitError(500, 'Internal Error!');
+    throw new Error('Admin routes are not protected');
   }
 
   const referer = request.headers.get('referer');
@@ -26,25 +27,18 @@ export const load = (async ({ locals: { getSession, supabase }, params, request 
   let fields = 'content1,content2';
 
   if (referer !== 'http://localhost:5173/articles') {
-    fields += ',id,title,slug,username,profile:profiles(first_name,last_name),created_at,updated_at,tags(id,name)';
+    fields += ',id,title,slug,username,created_at,updated_at,' +
+        'tags(id,name),profile:profiles(first_name,last_name)';
   }
 
-  const { data: articles, error } = await supabase
-    .from('articles')
-    .select(fields as '*,profile:profiles(first_name,last_name),tags(id,name)')
-    .match({ slug: params.slug, user_id: session.user.id });
+  const articlesHandler = new ArticlesHandler(supabase);
 
-  if (error) {
-    console.log(error);
-    throw svelteKitError(500, 'Internal Error!');
-  }
-
-  if (!articles.length) {
-    throw svelteKitError(404, 'Not found');
-  }
+  const article = await articlesHandler.get(fields, {
+    slug: params.slug, user_id: session.user.id
+  });
 
   return {
-    article: articles[0] as Article | Pick<Article, 'content1' | 'content2'>
+    article: article as Article | Pick<Article, 'content1' | 'content2'>
   };
 }) satisfies PageServerLoad;
 
@@ -90,18 +84,10 @@ export const actions = {
       }
     });
 
+    const articlesHandler = new ArticlesHandler(supabase);
+
     if (requestData.slug && !('slug' in errors)) {
-      const count = await supabase
-        .from('articles')
-        .select('*', { count: 'exact', head: true })
-        .eq('slug', requestData.slug)
-        .then(({ count, error }) => {
-          if (error) {
-            console.log(error);
-            throw svelteKitError(500, 'Internal Error!');
-          }
-          return count;
-        });
+      const count = await articlesHandler.getCount({ slug: requestData.slug });
 
       if (count) {
         errors.slug = ['This slug already exists'];
@@ -112,16 +98,7 @@ export const actions = {
       return fail(400, Object.assign(requestData, { errors }));
     }
 
-    await supabase
-      .from('articles')
-      .update(requestData)
-      .eq('id', id)
-      .then(({ error }) => {
-        if (error) {
-          console.log(error);
-          throw svelteKitError(500, 'Internal Error!');
-        }
-      });
+    await articlesHandler.update(requestData, Number(id));
 
     if (slug) {
       throw redirect(303, `/admin/articles/${slug}`);
@@ -182,6 +159,8 @@ export const actions = {
       remove: []
     };
 
+    const tagsHandler = new TagsHandler(supabase);
+
     // forEach cannot be used here.
     await (async () => {
       for (const tag of requestData) {
@@ -196,18 +175,7 @@ export const actions = {
           continue;
         }
 
-        const tagName = await supabase
-          .from('tags')
-          .select('name')
-          .eq('id', tag.id)
-          .single()
-          .then(({ data, error }) => {
-            if (error) {
-              console.log(error);
-              throw svelteKitError(500, 'Internal Error!');
-            }
-            return data.name;
-          });
+        const tagName = await tagsHandler.getName(tag.id);
 
         if (tag.name !== tagName) {
           requestDataByQuery.remove.push(tag);
@@ -218,78 +186,32 @@ export const actions = {
 
     const tagIdsToRemove = requestDataByQuery.remove.map(tag => tag.id);
 
-    await supabase
-      .from('articles_tags')
-      .delete()
-      .eq('article_id', articleId)
-      .in('tag_id', tagIdsToRemove)
-      .then(( { error }) => {
-        if (error) {
-          console.log(error);
-          throw svelteKitError(500, 'Internal Error!');
-        }
-      });
+    const articlesHandler = new ArticlesHandler(supabase);
 
-    const removedTagsWithArticles = await supabase
-      .from('tags')
-      .select('id,articles(count)')
-      .in('id', tagIdsToRemove)
-      .then(({ data, error }) => {
-        if (error) {
-          console.log(error);
-          throw svelteKitError(500, 'Internal Error!');
-        }
-        return data;
-      });
+    await articlesHandler.removeTags(tagIdsToRemove, Number(articleId));
+
+    const tagsWithArticlesCount = await tagsHandler.getArticlesCounts(tagIdsToRemove);
 
     // forEach cannot be used here.
     await (async () => {
-      for (const tag of removedTagsWithArticles) {
+      for (const tag of tagsWithArticlesCount) {
         if (!('count' in tag.articles[0])) {
-          console.log('Removed tag information is incorrect');
-          throw svelteKitError(500, 'Internal Error!');
+          throw new Error('The return value of getArticlesCounts() is invalid.');
         }
         if (tag.articles[0].count === 0) {
-          await supabase
-            .from('tags')
-            .delete()
-            .eq('id', tag.id)
-            .then(({ error }) => {
-              if (error) {
-                console.log(error);
-                throw svelteKitError(500, 'Internal Error!');
-              }
-            });
+          await tagsHandler.delete(tag.id);
         }
       }
     })();
 
     const tagNamesToUpsert = requestDataByQuery.upsert.map(tag => {return { name: tag.name }});
 
-    const newTags = await supabase
-      .from('tags')
-      .upsert(tagNamesToUpsert, { onConflict: 'name', ignoreDuplicates: false })
-      .select('id')
-      .then(({ data, error }) => {
-        if (error) {
-          console.log(error);
-          throw svelteKitError(500, 'Internal Error!');
-        }
-        return data;
-      });
+    const newTags = await tagsHandler.create(tagNamesToUpsert);
 
     const compositePrimaryKeys = newTags.map((tag) => {
       return { article_id: Number(articleId), tag_id: tag.id };
     });
 
-    await supabase
-      .from('articles_tags')
-      .insert(compositePrimaryKeys)
-      .then(({ error }) => {
-        if (error) {
-          console.log(error);
-          throw svelteKitError(500, 'Internal Error!');
-        }
-      });
+    await articlesHandler.addTags(compositePrimaryKeys);
   }
 } satisfies Actions;

@@ -4,7 +4,7 @@
   export let name: string;
 
   $: form = $storedForm;
-  $: defaultValues = $storedFormValues;
+  $: formValues = $storedFormValues;
 </script>
 
 {#if form?.errors?.[name]}
@@ -12,4 +12,4 @@
     <p>{message}</p>
   {/each}
 {/if}
-<input type="text" {name} value={form?.[name] ?? defaultValues?.[name] ?? ''}>
+<input type="text" {name} value={form?.[name] ?? formValues?.[name] ?? ''}>
