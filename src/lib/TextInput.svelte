@@ -1,10 +1,12 @@
 <script lang="ts">
   import { storedForm, storedFormValues } from '$lib/stores';
 
+  export let type: string = 'text';
   export let name: string;
 
   $: form = $storedForm;
   $: formValues = $storedFormValues;
+  $: value = form?.[name] ?? formValues?.[name] ?? '';
 </script>
 
 {#if form?.errors?.[name]}
@@ -12,4 +14,9 @@
     <p>{message}</p>
   {/each}
 {/if}
-<input type="text" {name} value={form?.[name] ?? formValues?.[name] ?? ''}>
+
+{#if type === 'textarea'}
+  <textarea {name} cols="30" rows="10">{value}</textarea>
+{:else}
+  <input {type} {name} {value}>
+{/if}

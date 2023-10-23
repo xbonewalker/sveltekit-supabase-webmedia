@@ -5,7 +5,7 @@
 <fieldset name="articleFieldset">
   <TextInput name="title" />
   <TextInput name="slug" />
-  <TextInput name="content1" />
-  <TextInput name="content2" />
+  <TextInput type="textarea" name="content1" />
+  <TextInput type="textarea" name="content2" />
   <button>Save</button>
 </fieldset>
