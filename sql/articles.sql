@@ -12,15 +12,20 @@ create table public.articles (
   constraint articles_username_fkey foreign key (username) references profiles (username)
 );
 
+create extension if not exists moddatetime schema extensions;
+
+create trigger handle_updated_at before update on public.articles
+  for each row execute procedure moddatetime (updated_at);
+
 alter table public.profiles enable row level security;
 
-create policy "Enable all actions for users based on user_id" on "public"."articles"
+create policy "Enable all actions for users based on user_id" on public.articles
 as permissive for all
 to public
 using (auth.uid() = user_id)
 with check (auth.uid() = user_id);
 
-create policy "Enable read access for all users" on "public"."articles"
+create policy "Enable read access for all users" on public.articles
 as permissive for select
 to public
 using (true);

@@ -4,3 +4,8 @@ create table public.tags (
   created_at timestamp with time zone default timezone('utc'::text, now()) not null,
   updated_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
+
+create extension if not exists moddatetime schema extensions;
+
+create trigger handle_updated_at before update on public.tags
+  for each row execute procedure moddatetime (updated_at);

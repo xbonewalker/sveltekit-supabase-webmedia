@@ -10,9 +10,14 @@ create table public.profiles (
   primary key (id)
 );
 
+create extension if not exists moddatetime schema extensions;
+
+create trigger handle_updated_at before update on public.profiles
+  for each row execute procedure moddatetime (updated_at);
+
 alter table public.profiles enable row level security;
 
-create policy "Enable read access for all users" on "public"."profiles"
+create policy "Enable read access for all users" on public.profiles
 as permissive for select
 to public
 using (true);

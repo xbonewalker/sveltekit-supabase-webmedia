@@ -6,3 +6,8 @@ create table public.articles_tags (
 
   primary key (article_id, tag_id)
 );
+
+create extension if not exists moddatetime schema extensions;
+
+create trigger handle_updated_at before update on public.articles_tags
+  for each row execute procedure moddatetime (updated_at);
