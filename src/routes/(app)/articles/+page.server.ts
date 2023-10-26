@@ -1,3 +1,5 @@
+import { error } from '@sveltejs/kit';
+
 import { ArticlesHandler } from '$lib/server/supabase/articlesHandler';
 import { TagsHandler } from '$lib/server/supabase/tagsHandler';
 
@@ -30,11 +32,13 @@ export const actions = {
     const { id, ...rest } = Object.fromEntries(formData);
 
     if (!id) {
-      throw new Error('Article ID is missing');
+      console.log('Article ID is missing');
+      throw error(400, 'Bad Request!');
     }
 
     if (Object.keys(rest).length !== 0) {
-      throw new Error('Invalid parameter');
+      console.log('Invalid parameter');
+      throw error(400, 'Bad Request!');
     }
 
     const articlesHandler = new ArticlesHandler(supabase);

@@ -1,4 +1,4 @@
-import { error as svelteKitError, fail, redirect } from '@sveltejs/kit';
+import { error, fail, redirect } from '@sveltejs/kit';
 
 import { initializeErrorsByField } from '$lib/server/validation';
 import { ArticlesHandler } from '$lib/server/supabase/articlesHandler';
@@ -23,7 +23,7 @@ export const actions = {
 
     if (Object.keys(rest).length !== 0) {
       console.log('Invalid parameter');
-      throw svelteKitError(400, 'Bad Request!');
+      throw error(400, 'Bad Request!');
     }
 
     type RequestData = {
@@ -66,7 +66,7 @@ export const actions = {
     }
 
     if (Object.keys(errors).length !== 0) {
-      return fail(400, Object.assign(requestData, { errors }));
+      return fail(422, Object.assign(requestData, { errors }));
     }
 
     const user = {
@@ -85,12 +85,12 @@ export const actions = {
 
     if (!articleId || typeof articleId !== 'string' || isNaN(Number(articleId))) {
       console.log('Article ID is missing');
-      throw svelteKitError(400, 'Bad Request!');
+      throw error(400, 'Bad Request!');
     }
 
     if (Object.keys(rest).length !== 0) {
       console.log('Invalid parameter');
-      throw svelteKitError(400, 'Bad Request!');
+      throw error(400, 'Bad Request!');
     }
 
     type RequestData = {
@@ -110,7 +110,7 @@ export const actions = {
 
     if (!Array.isArray(requestData)) {
       console.log('Tag data are missing');
-      throw svelteKitError(400, 'Bad Request!');
+      throw error(400, 'Bad Request!');
     }
 
     let errors: Errors = {};
@@ -134,7 +134,7 @@ export const actions = {
       requestData.forEach((tag, index) => {
         inputValues[`tag${++index}`] = tag.name;
       });
-      return fail(400, Object.assign(inputValues, {id: articleId}, { errors }));
+      return fail(422, Object.assign(inputValues, {id: articleId}, { errors }));
     }
 
     requestData = requestData.filter(tag => tag.name);
