@@ -3,7 +3,7 @@
 
   import { applyAction, enhance } from '$app/forms';
 
-  import { storedForm, storedFormValues } from '$lib/stores';
+  import { form as storedForm, formValues } from '$lib/stores';
 
   import ArticleFieldset from './ArticleFieldset.svelte';
   import TagsFieldset from './TagsFieldset.svelte';
@@ -16,17 +16,18 @@
 
   const setNewArticleToStore = (resultData: Record<string, unknown> | undefined) => {
     if (!resultData) return;
-    $storedFormValues = resultData as Record<string, number | string>;
+    $formValues = resultData as Record<string, number | string>;
   };
 
   onMount(() => {
-    document.forms[1].tagsFieldset.disabled = true;
-    console.log($storedFormValues);
+    console.log($formValues);
+    const articleFormButton = document.querySelector('#articleFormButton');
+    if (articleFormButton instanceof HTMLButtonElement) articleFormButton.disabled = false;
   });
 
   onDestroy(() => {
     $storedForm = null;
-    $storedFormValues = undefined;
+    $formValues = undefined;
   });
  </script>
 
@@ -41,7 +42,10 @@
     return async ({ result }) => {
       if (result.type === 'success') {
         formElement.articleFieldset.disabled = true;
-        document.forms[1].tagsFieldset.disabled = false;
+        const tagsFieldset = document.querySelector('fieldset[name=tagsFieldset]');
+        if (tagsFieldset instanceof HTMLFieldSetElement) tagsFieldset.disabled = false;
+        const tagsFormButton = document.querySelector('#tagsFormButton');
+        if (tagsFormButton instanceof HTMLButtonElement) tagsFormButton.disabled = false;
 
         // $storedFormValues = result.data;
         setNewArticleToStore(result.data);

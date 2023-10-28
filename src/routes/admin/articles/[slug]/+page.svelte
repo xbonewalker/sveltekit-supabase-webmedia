@@ -5,10 +5,11 @@
   import { invalidateAll } from '$app/navigation';
 
   import {
-    storedArticle,
-    storedArticleWithoutContent,
-    storedForm,
-    storedFormValues
+    article as storedArticle,
+    articleWithoutContent,
+    form as storedForm,
+    formValues,
+    isInUpdateForm
   } from '$lib/stores';
 
   import ArticleFieldset from '../ArticleFieldset.svelte';
@@ -26,9 +27,9 @@
   if ($storedArticle) {
     Object.assign(data.article, $storedArticle);
     $storedArticle = undefined;
-  } else if ($storedArticleWithoutContent) {
-    Object.assign(data.article, $storedArticleWithoutContent);
-    $storedArticleWithoutContent = undefined;
+  } else if ($articleWithoutContent) {
+    Object.assign(data.article, $articleWithoutContent);
+    $articleWithoutContent = undefined;
   }
 
   $: article = data.article as Article;
@@ -41,7 +42,9 @@
     return [`tag${index + 1}`, tag.name];
   }));
 
-  $: $storedFormValues = Object.assign({}, articleFormValues, tagsFormValues);
+  $: $formValues = Object.assign({}, articleFormValues, tagsFormValues);
+
+  $isInUpdateForm = true;
 
   const deleteUnchangedFormData = (formData: FormData) => {
     Array.from(formData).forEach(([key, value]) => {
@@ -54,12 +57,15 @@
   };
 
   onMount(() => {
-    console.log($storedFormValues);
+    console.log($formValues);
+    const tagsFieldset = document.querySelector('fieldset[name=tagsFieldset]');
+    if (tagsFieldset instanceof HTMLFieldSetElement) tagsFieldset.disabled = false;
   });
 
   onDestroy(() => {
     $storedForm = null;
-    $storedFormValues = undefined;
+    $formValues = undefined;
+    $isInUpdateForm = false;
   });
 </script>
 

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { storedArticle, storedArticleWithoutContent } from '$lib/stores';
+  import { article as storedArticle, articleWithoutContent } from '$lib/stores';
 
   import type { PageData } from './$types';
 
@@ -7,9 +7,9 @@
 
   export let data: PageData;
 
-  if ($storedArticleWithoutContent) {
-    Object.assign(data.article, $storedArticleWithoutContent);
-    $storedArticleWithoutContent = undefined;
+  if ($articleWithoutContent) {
+    Object.assign(data.article, $articleWithoutContent);
+    $articleWithoutContent = undefined;
   }
 
   let article = data.article as Article;

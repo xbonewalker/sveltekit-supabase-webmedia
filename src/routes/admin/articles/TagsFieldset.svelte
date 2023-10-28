@@ -2,9 +2,9 @@
   import TextInput from '$lib/TextInput.svelte';
 </script>
 
-<fieldset name="tagsFieldset">
+<fieldset name="tagsFieldset" disabled>
   {#each Array(3) as _, i}
     <TextInput name={`tag${i + 1}`} />
   {/each}
-  <button>Save</button>
+  <button id="tagsFormButton" disabled>Save</button>
 </fieldset>
