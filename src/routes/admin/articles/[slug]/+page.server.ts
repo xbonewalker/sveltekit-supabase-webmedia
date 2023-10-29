@@ -196,7 +196,7 @@ export const actions = {
     await (async () => {
       for (const tag of tagsWithArticlesCount) {
         if (!('count' in tag.articles[0])) {
-          throw new Error('The return value of getArticlesCounts() is invalid.');
+          throw new Error('The return value of getArticlesCounts() is invalid');
         }
         if (tag.articles[0].count === 0) {
           await tagsHandler.delete(tag.id);
