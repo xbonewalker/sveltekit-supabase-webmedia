@@ -4,7 +4,7 @@
 
 <fieldset name="tagsFieldset" disabled>
   {#each Array(3) as _, i}
-    <TextInput name={`tag${i + 1}`} />
+    <TextInput name={`tag${i + 1}`} validation={{ maxlength: 10 }} />
   {/each}
   <button id="tagsFormButton" disabled>Save</button>
 </fieldset>

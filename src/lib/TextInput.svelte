@@ -4,6 +4,15 @@
   export let type: string = 'text';
   export let name: string;
 
+  interface Validation {
+    required?: boolean;
+    minlength?: number;
+    maxlength?: number;
+    pattern?: string;
+  }
+
+  export let validation: Validation = {};
+
   $: value = $form?.[name] ?? $formValues?.[name] ?? '';
 
   const changeButtonState = (target: HTMLInputElement | HTMLTextAreaElement) => {
@@ -49,15 +58,17 @@
 
 {#if !$isInUpdateForm}
   {#if type === 'textarea'}
-    <textarea {name} cols="30" rows="10">{value}</textarea>
+    <textarea {name} cols="30" rows="10" {...validation}>{value}</textarea>
   {:else}
-    <input {type} {name} {value}>
+    <input {type} {name} {value} {...validation}>
   {/if}
 {:else}
   {#if type === 'textarea'}
-    <textarea {name} cols="30" rows="10"
+    <textarea {name} cols="30" rows="10" {...validation}
       on:change={(e) => changeButtonState(e.currentTarget)}>{value}</textarea>
   {:else}
-    <input {type} {name} {value} on:change={(e) => changeButtonState(e.currentTarget)}>
+    <input {type} {name} {value} {...validation}
+      on:change={(e) => changeButtonState(e.currentTarget)}
+    >
   {/if}
 {/if}
