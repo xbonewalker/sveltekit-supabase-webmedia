@@ -18,11 +18,11 @@
   const changeButtonState = (target: HTMLInputElement | HTMLTextAreaElement) => {
     if (!$formValues) return;
 
-    const button = target.parentElement?.lastChild;
-    if (!(button instanceof HTMLButtonElement)) return;
-
-    const form = target.parentElement?.parentElement;
+    const form = target.closest('form');
     if (!(form instanceof HTMLFormElement)) return;
+
+    const button = form.querySelector('button');
+    if (!(button instanceof HTMLButtonElement)) return;
 
     const fieldName = target.name;
     const targetValue = target.value;
@@ -33,6 +33,7 @@
       // do nothing
     } else if (targetValue !== $formValues[fieldName]) {
       button.disabled = false;
+      button.style.cursor = 'pointer';
       return;
     }
 
@@ -42,33 +43,43 @@
       if (key.slice(0, 3) === 'tag' && value === '' && $formValues[key] === undefined) continue;
       if (value !== $formValues[key]) {
         button.disabled = false;
+        button.style.cursor = 'pointer';
         return;
       }
     }
 
     button.disabled = true;
+    button.style.cursor = 'not-allowed';
   };
 </script>
 
 {#if $form?.errors?.[name]}
   {#each $form.errors[name] as message}
-    <p>{message}</p>
+    <p class="error">{message}</p>
   {/each}
 {/if}
 
-{#if !$isInUpdateForm}
-  {#if type === 'textarea'}
-    <textarea {name} cols="30" rows="10" {...validation}>{value}</textarea>
+<label>
+  {#if !$isInUpdateForm}
+    {#if type === 'textarea'}
+      <textarea {name} cols="30" rows="10" {...validation}>{value}</textarea>
+    {:else}
+      <input {type} {name} {value} {...validation}>
+    {/if}
   {:else}
-    <input {type} {name} {value} {...validation}>
+    {#if type === 'textarea'}
+      <textarea {name} cols="30" rows="10" {...validation}
+        on:change={(e) => changeButtonState(e.currentTarget)}>{value}</textarea>
+    {:else}
+      <input {type} {name} {value} {...validation}
+        on:change={(e) => changeButtonState(e.currentTarget)}
+      >
+    {/if}
   {/if}
-{:else}
-  {#if type === 'textarea'}
-    <textarea {name} cols="30" rows="10" {...validation}
-      on:change={(e) => changeButtonState(e.currentTarget)}>{value}</textarea>
-  {:else}
-    <input {type} {name} {value} {...validation}
-      on:change={(e) => changeButtonState(e.currentTarget)}
-    >
-  {/if}
-{/if}
+</label>
+
+<style>
+  label {
+    display: block;
+  }
+</style>

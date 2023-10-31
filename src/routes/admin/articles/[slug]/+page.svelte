@@ -124,3 +124,9 @@
 <div>{@html article.content2}</div>
 <div>{article.created_at}</div>
 <div>{article.updated_at}</div>
+
+<style>
+  form :global(button) {
+    cursor: not-allowed;
+  }
+</style>

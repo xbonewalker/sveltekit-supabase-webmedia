@@ -8,12 +8,31 @@
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
-    goto('/auth');
   };
 </script>
 
-{#if session}
-  <button on:click="{handleSignOut}">Sign out</button>
-{/if}
+<nav>
+  <ul>
+    <li>
+      <a href="/">Home</a>
+    </li>
+    {#if session}
+      <li>
+        <a href="/auth" on:click={handleSignOut}>Sign out</a>
+      </li>
+    {/if}
+  </ul>
+</nav>
 
 <slot />
+
+<style>
+  ul {
+    display: flex;
+    padding: 0;
+    list-style-type: none;
+  }
+  li {
+    margin-right: 10px;
+  }
+</style>

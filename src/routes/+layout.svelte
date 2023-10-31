@@ -3,6 +3,8 @@
 
   import { invalidate } from '$app/navigation';
 
+  import './styles.css';
+
   export let data;
 
   let { supabase, session } = data;
@@ -22,3 +24,9 @@
 </script>
 
 <slot />
+
+<!-- <style>
+  :global(.error) {
+    color: red;
+  }
+</style> -->

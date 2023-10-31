@@ -1,0 +1,11 @@
+button {
+  cursor: pointer;
+}
+
+.success {
+  color: green;
+}
+
+.error {
+  color: red;
+}

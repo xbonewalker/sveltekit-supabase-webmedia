@@ -1,6 +1,6 @@
 <script lang="ts">
   import { applyAction, enhance } from '$app/forms';
-  import { invalidateAll } from '$app/navigation';
+  import { goto, invalidateAll } from '$app/navigation';
 
   import { articleWithoutContent } from '$lib/stores';
 
@@ -20,7 +20,12 @@
       {article.username}
       {article.profile.first_name}{article.profile.last_name}
       {#if data.signedInCreator && data.signedInCreator.username === article.username}
-        <a href={`/admin/articles/${article.slug}`} on:click={() => articleWithoutContent.set(article)}>Edit</a>
+        <button
+          on:click={() => {
+            articleWithoutContent.set(article);
+            goto(`/admin/articles/${article.slug}`);
+          }}
+        >Edit</button>
         <form
           method="POST"
           action="?/deleteArticle"
@@ -40,3 +45,9 @@
     </li>
   {/each}
 </ul>
+
+<style>
+  form {
+    display: inline;
+  }
+</style>

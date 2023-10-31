@@ -42,10 +42,17 @@
     return async ({ result }) => {
       if (result.type === 'success') {
         formElement.articleFieldset.disabled = true;
+        const articleFormButton = document.querySelector('#articleFormButton');
+        if (articleFormButton instanceof HTMLButtonElement) {
+          articleFormButton.style.cursor = 'not-allowed';
+        }
         const tagsFieldset = document.querySelector('fieldset[name=tagsFieldset]');
         if (tagsFieldset instanceof HTMLFieldSetElement) tagsFieldset.disabled = false;
         const tagsFormButton = document.querySelector('#tagsFormButton');
-        if (tagsFormButton instanceof HTMLButtonElement) tagsFormButton.disabled = false;
+        if (tagsFormButton instanceof HTMLButtonElement) {
+          tagsFormButton.disabled = false;
+          tagsFormButton.style.cursor = 'pointer';
+        }
 
         // $storedFormValues = result.data;
         setNewArticleToStore(result.data);
@@ -80,3 +87,9 @@
 >
   <TagsFieldset />
 </form>
+
+<style>
+  form:nth-child(2) :global(button) {
+    cursor: not-allowed;
+  }
+</style>
