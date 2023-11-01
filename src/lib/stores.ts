@@ -1,5 +1,7 @@
 import { writable } from 'svelte/store';
 
+import type { ChangeEventHandler } from 'svelte/elements';
+
 import type { Article, ArticleWithoutContent } from '$lib/database.types';
 import type { Errors } from '$lib/server/validation';
 
@@ -9,4 +11,5 @@ export const articleWithoutContent = writable<ArticleWithoutContent | undefined>
 export const form = writable<Record<string, unknown> & { errors?: Errors } | null>(null);
 export const formValues = writable<Record<string, number | string> | undefined>(undefined);
 
-export const isInUpdateForm = writable<boolean>(false);
+type ChangedElement = HTMLInputElement | HTMLTextAreaElement;
+export const handleChange = writable<ChangeEventHandler<ChangedElement> | undefined>(undefined);

@@ -9,7 +9,7 @@
     articleWithoutContent,
     form as storedForm,
     formValues,
-    isInUpdateForm
+    handleChange
   } from '$lib/stores';
 
   import ArticleFieldset from '../ArticleFieldset.svelte';
@@ -44,7 +44,45 @@
 
   $: $formValues = Object.assign({}, articleFormValues, tagsFormValues);
 
-  $isInUpdateForm = true;
+  $handleChange = (e: Event) => {
+    if (!$formValues) return;
+
+    const target = e.currentTarget;
+    if (!(target instanceof HTMLInputElement) && !(target instanceof HTMLTextAreaElement)) return;
+
+    const form = target.closest('form');
+    if (!form) return;
+
+    const button = form.querySelector('button');
+    if (!button) return;
+
+    const fieldName = target.name;
+    const targetValue = target.value;
+
+    if (fieldName.slice(0, 3) === 'tag'
+        && targetValue === ''
+        && $formValues[fieldName] === undefined) {
+      // do nothing
+    } else if (targetValue !== $formValues[fieldName]) {
+      button.disabled = false;
+      button.style.cursor = 'pointer';
+      return;
+    }
+
+    const formData = new FormData(form);
+    for (const [key, value] of Array.from(formData)) {
+      if (key === fieldName || key === 'id') continue;
+      if (key.slice(0, 3) === 'tag' && value === '' && $formValues[key] === undefined) continue;
+      if (value !== $formValues[key]) {
+        button.disabled = false;
+        button.style.cursor = 'pointer';
+        return;
+      }
+    }
+
+    button.disabled = true;
+    button.style.cursor = 'not-allowed';
+  };
 
   const deleteUnchangedFormData = (formData: FormData) => {
     Array.from(formData).forEach(([key, value]) => {
@@ -56,23 +94,29 @@
     });
   };
 
+  const disableButton = (formElement: HTMLFormElement) => {
+    const button = formElement.querySelector('button');
+    if (button) {
+      button.disabled = true;
+      button.style.cursor = 'not-allowed';
+    }
+  };
+
   onMount(() => {
     console.log($formValues);
-    const tagsFieldset = document.querySelector('fieldset[name=tagsFieldset]');
-    if (tagsFieldset instanceof HTMLFieldSetElement) tagsFieldset.disabled = false;
   });
 
   onDestroy(() => {
     $storedForm = null;
     $formValues = undefined;
-    $isInUpdateForm = false;
+    $handleChange = undefined;
   });
 </script>
 
 <form
   method="POST"
   action="?/updateArticle"
-  use:enhance={({ cancel, formData }) => {
+  use:enhance={({ cancel, formData, formElement }) => {
     deleteUnchangedFormData(formData);
     if (Array.from(formData.keys()).length === 1) {
       cancel();
@@ -81,13 +125,14 @@
     return async ({ result }) => {
       if (result.type === 'success') {
         invalidateAll();
+        disableButton(formElement);
       }
       await applyAction(result);
     };
   }}
 >
   <input type="hidden" name="id" value={article.id}>
-  <ArticleFieldset />
+  <ArticleFieldset buttonDisabled={true} />
 </form>
 
 <form
@@ -105,12 +150,13 @@
     return async ({ result }) => {
       if (result.type === 'success') {
         invalidateAll();
+        disableButton(formElement);
       }
       await applyAction(result);
     };
   }}
 >
-  <TagsFieldset />
+  <TagsFieldset buttonDisabled={true} />
 </form>
 
 <h1>{article.title}</h1>

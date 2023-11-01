@@ -3,7 +3,7 @@
 
   import { applyAction, enhance } from '$app/forms';
 
-  import { form as storedForm, formValues } from '$lib/stores';
+  import { form as storedForm, formValues, handleChange } from '$lib/stores';
 
   import ArticleFieldset from './ArticleFieldset.svelte';
   import TagsFieldset from './TagsFieldset.svelte';
@@ -14,6 +14,41 @@
 
   $: $storedForm = form;
 
+  $handleChange = (e: Event) => {
+    const target = e.currentTarget;
+    if (!(target instanceof HTMLInputElement) && !(target instanceof HTMLTextAreaElement)) return;
+
+    const form = target.closest('form');
+    if (!form) return;
+
+    const button = form.querySelector('button');
+    if (!button) return;
+
+    const fieldName = target.name;
+    const targetValue = target.value;
+
+    if (fieldName.slice(0, 3) === 'tag') return;
+
+    if (!targetValue) {
+      button.disabled = true;
+      button.style.cursor = 'not-allowed';
+      return;
+    }
+
+    const formData = new FormData(form);
+    for (const [key, value] of Array.from(formData)) {
+      if (key === fieldName) continue;
+      if (!value) {
+        button.disabled = true;
+        button.style.cursor = 'not-allowed';
+        return;
+      }
+    }
+
+    button.disabled = false;
+    button.style.cursor = 'pointer';
+  };
+
   const setNewArticleToStore = (resultData: Record<string, unknown> | undefined) => {
     if (!resultData) return;
     $formValues = resultData as Record<string, number | string>;
@@ -21,15 +56,14 @@
 
   onMount(() => {
     console.log($formValues);
-    const articleFormButton = document.querySelector('#articleFormButton');
-    if (articleFormButton instanceof HTMLButtonElement) articleFormButton.disabled = false;
   });
 
   onDestroy(() => {
     $storedForm = null;
     $formValues = undefined;
+    $handleChange = undefined;
   });
- </script>
+</script>
 
 <form
   method="POST"
@@ -42,17 +76,12 @@
     return async ({ result }) => {
       if (result.type === 'success') {
         formElement.articleFieldset.disabled = true;
-        const articleFormButton = document.querySelector('#articleFormButton');
-        if (articleFormButton instanceof HTMLButtonElement) {
-          articleFormButton.style.cursor = 'not-allowed';
-        }
+        const articleFormButton = formElement.querySelector('button');
+        if (articleFormButton) articleFormButton.style.cursor = 'not-allowed';
         const tagsFieldset = document.querySelector('fieldset[name=tagsFieldset]');
         if (tagsFieldset instanceof HTMLFieldSetElement) tagsFieldset.disabled = false;
-        const tagsFormButton = document.querySelector('#tagsFormButton');
-        if (tagsFormButton instanceof HTMLButtonElement) {
-          tagsFormButton.disabled = false;
-          tagsFormButton.style.cursor = 'pointer';
-        }
+        const tagsFormButton = tagsFieldset?.querySelector('button');
+        if (tagsFormButton) tagsFormButton.style.cursor = 'pointer';
 
         // $storedFormValues = result.data;
         setNewArticleToStore(result.data);
@@ -61,7 +90,7 @@
     };
   }}
 >
-  <ArticleFieldset />
+  <ArticleFieldset buttonDisabled={true} />
 </form>
 
 <form
@@ -85,11 +114,11 @@
     };
   }}
 >
-  <TagsFieldset />
+  <TagsFieldset fieldsetDisabled={true} />
 </form>
 
 <style>
-  form:nth-child(2) :global(button) {
+  form :global(button) {
     cursor: not-allowed;
   }
 </style>
