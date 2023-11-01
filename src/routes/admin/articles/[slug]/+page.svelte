@@ -126,6 +126,8 @@
       if (result.type === 'success') {
         invalidateAll();
         disableButton(formElement);
+      } else if (result.type === 'redirect') {
+        disableButton(formElement);
       }
       await applyAction(result);
     };
