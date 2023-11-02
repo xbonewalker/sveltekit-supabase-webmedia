@@ -124,8 +124,8 @@
 
     return async ({ result }) => {
       if (result.type === 'success') {
-        invalidateAll();
         disableButton(formElement);
+        invalidateAll();
       } else if (result.type === 'redirect') {
         disableButton(formElement);
       }
@@ -151,8 +151,11 @@
 
     return async ({ result }) => {
       if (result.type === 'success') {
-        invalidateAll();
+        for (let i = 0; i < 3; i++) {
+          formElement[`tag${i + 1}`].value = '';
+        }
         disableButton(formElement);
+        invalidateAll();
       }
       await applyAction(result);
     };
