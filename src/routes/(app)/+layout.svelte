@@ -18,7 +18,7 @@
     </li>
     {#if session}
       <li>
-        <a href="/auth" on:click={handleSignOut}>Sign out</a>
+        <a href="/signin" on:click={handleSignOut}>Sign out</a>
       </li>
     {/if}
   </ul>
